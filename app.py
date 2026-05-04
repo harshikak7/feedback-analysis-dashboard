@@ -17,7 +17,7 @@ def find_text_column(df):
     return None
 
 st.set_page_config(page_title="Feedback Analyzer", layout="wide")
-st.title("📊 Feedback Analytics Dashboard")
+st.title("Feedback Analytics Dashboard")
 
 # 📂 Upload file
 uploaded_file = st.file_uploader(
