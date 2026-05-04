@@ -6,7 +6,7 @@ from sentiment import get_sentiment
 from insights import generate_insights
 from utils.keyword_extractor import extract_keywords
 
-# 🔍 Auto-detect text column
+# Auto-detect text column
 def find_text_column(df):
     possible_cols = ["review", "text", "comment", "feedback", "content"]
 
@@ -19,7 +19,7 @@ def find_text_column(df):
 st.set_page_config(page_title="Feedback Analyzer", layout="wide")
 st.title("Feedback Analytics Dashboard")
 
-# 📂 Upload file
+# Upload file
 uploaded_file = st.file_uploader(
     "Upload your feedback dataset (CSV format)",
     type=["csv"]
@@ -30,13 +30,13 @@ if uploaded_file is None:
     st.stop()
 
 
-# 📊 Load dataset
+# Load dataset
 df = pd.read_csv(uploaded_file)
 
 st.subheader("Dataset Preview")
 st.dataframe(df.head())
 
-# 🧠 Column selection (smart)
+# Column selection (smart)
 text_col = find_text_column(df)
 
 if text_col:
@@ -47,21 +47,21 @@ else:
         df.columns
     )
 
-# ✅ Apply sentiment
+# Apply sentiment
 df["sentiment"] = df[text_col].astype(str).apply(get_sentiment)
 
 st.subheader("Sentiment Analysis Result")
 st.dataframe(df.head())
 
 
-# 📊 Sentiment Chart
+# Sentiment Chart
 sentiment_chart = px.pie(
     df,
     names="sentiment",
     title="Sentiment Distribution"
 )
 
-# 📊 Optional charts (only if columns exist)
+# Optional charts (only if columns exist)
 
 charts = []
 
@@ -78,7 +78,7 @@ if "city" in df.columns:
     )
     charts.append(city_chart)
 
-# 📊 Layout
+# Layout
 col1, col2 = st.columns(2)
 
 with col1:
@@ -88,7 +88,7 @@ if charts:
     with col2:
         st.plotly_chart(charts[0], use_container_width=True)
 
-# 🔑 Keywords
+# Keywords
 st.subheader("Top Keywords")
 
 keywords = extract_keywords(df[text_col].dropna().astype(str))
@@ -96,7 +96,7 @@ keywords = extract_keywords(df[text_col].dropna().astype(str))
 for word, count in keywords:
     st.write(f"{word} : {count}")
 
-# 🧠 Insights
+# Insights
 st.subheader("Auto Insights")
 
 try:
