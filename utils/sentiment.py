@@ -1,15 +1,20 @@
-from textblob import TextBlob
+from transformers import pipeline
 
+#Load hugging face model
+classifier=pipeline('sentiment-analysis',model='cardiffnlp/twitter-roberta-base-sentiment-latest')
 
-def get_sentiment(text):
+def analyze_sentiment(text):
+    try:
+        if not isinstance(text,str):
+            return 'Neutral',0
+        if text.strip()=='':
+            return 'Neutral',0
+        
+        result=classifier(text[:512])[0]
+        label=result['label']
+        score=round(result['score'],2)
 
-    score = TextBlob(text).sentiment.polarity
+        return label,score
 
-    if score > 0:
-        return "Positive"
-
-    elif score < 0:
-        return "Negative"
-
-    else:
-        return "Neutral"
+    except Exception:
+        return 'Neutral',0

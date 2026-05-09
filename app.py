@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from utils.sentiment import analyze_sentiment
 
 st.set_page_config(page_title='AI Feedback Dashboard',layout='wide')
 st.title('AI Feedback Analysis Dashboard')
@@ -50,6 +51,29 @@ if uploaded_file is not None:
         st.subheader('Select Review Columns')
         review_column=st.selectbox('Choose a column containing feedback/reviews',df.columns)
         st.success(f'Selected Column:{review_column}')
+
+        analyze_button=st.button('Run sentiment analysis')
+
+        #Sentiment Logic
+        if analyze_button:
+            with st.spinner('Analyzing Sentiments'):
+                sentiments=[]
+                confidence_scores=[]
+                reviews=df[review_column].fillna('')
+
+                for review in reviews:
+                    label,score=analyze_sentiment(review)
+
+                    sentiments.append(label)
+                    confidence_scores.append(score)
+
+                df['Sentiment']=sentiments
+                df['Confidence Score']=confidence_scores
+
+                st.success('Sentiment Analysis Completed!')
+                st.subheader('Analyzed Dataset')
+
+                st.dataframe(df.head(100),use_container_width=True)
     
     except pd.errors.ParserError:
         st.error('CSV Parsing failed. Please upload a clean CSV file.')
