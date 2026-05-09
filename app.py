@@ -5,6 +5,23 @@ import plotly.express as px
 from utils.insights import generate_insights
 
 st.set_page_config(page_title='AI Feedback Dashboard',layout='wide')
+
+st.markdown("""
+<style>
+
+.main {
+    background-color: #0E1117;
+}
+
+div[data-testid="metric-container"] {
+    background-color: #1E1E1E;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 st.title('AI Feedback Analysis Dashboard')
 st.write('Upload a CSV dataset to start analysis.')
 
@@ -73,49 +90,80 @@ if uploaded_file is not None:
                 df['Confidence Score']=confidence_scores
 
                 st.success('Sentiment Analysis Completed!')
-                st.subheader('Analyzed Dataset')
 
-                st.dataframe(df.head(100),use_container_width=True)
+                tab1,tab2,tab3=st.tabs(["Dataset","Dashboard","AI Insights"])
+
+                with tab1:
+                    st.subheader('Analyzed Dataset')
+                    st.dataframe(df.head(100),use_container_width=True)
                 
                 #Dashboard Logic - Sentiment Count
-                sentiment_counts=df['Sentiment'].value_counts()
+                with tab2:
+                    sentiment_counts=df['Sentiment'].value_counts()
+                    positive_count=sentiment_counts.get('positive',0)
+                    negative_count=sentiment_counts.get('negative',0)
+                    neutral_count=sentiment_counts.get('neutral',0)
 
-                positive_count=sentiment_counts.get('positive',0)
-                negative_count=sentiment_counts.get('negative',0)
-                neutral_count=sentiment_counts.get('neutral',0)
+                    st.subheader('Sentiment Overview')
 
-                st.divider()
-                st.subheader('Sentiment Overview')
+                    kpi1,kpi2,kpi3=st.columns(3)
+                    kpi1.metric("Positive Reviews", positive_count)
+                    kpi2.metric("Neutral Reviews", neutral_count)
+                    kpi3.metric("Negative Reviews", negative_count)
 
-                kpi1,kpi2,kpi3=st.columns(3)
-                kpi1.metric("Positive Reviews", positive_count)
-                kpi2.metric("Neutral Reviews", neutral_count)
-                kpi3.metric("Negative Reviews", negative_count)
+                    ##Pie chart
+                    pie_chart = px.pie(names=sentiment_counts.index,values=sentiment_counts.values,title="Sentiment Distribution")
+                    pie_chart.update_layout(height=400)
 
-                ##Pie chart
-                pie_chart = px.pie(names=sentiment_counts.index,values=sentiment_counts.values,title="Sentiment Distribution")
-                st.plotly_chart(pie_chart,use_container_width=True)
+                    #Bar chart
+                    bar_chart = px.bar(x=sentiment_counts.index,y=sentiment_counts.values,title="Sentiment Count", 
+                                        labels={
+                                        "x": "Sentiment",
+                                        "y": "Count"
+                                        })
+                    bar_chart.update_layout(height=400)
+                    
+                    chart1,chart2=st.columns(2)
+                    with chart1:
+                        st.plotly_chart(pie_chart,use_container_width=True)
 
-                #Bar chart
-                bar_chart = px.bar(x=sentiment_counts.index,y=sentiment_counts.values,title="Sentiment Count", 
-                                    labels={
-                                       "x": "Sentiment",
-                                       "y": "Count"
-                                    })
-                
-                st.plotly_chart(bar_chart,use_container_width=True)
+                    with chart2:
+                        st.plotly_chart(bar_chart,use_container_width=True)
+
+                    #Positive reviews
+                    st.divider()
+                    review_col1, review_col2 = st.columns(2)
+
+                    with review_col1:
+                        st.subheader("🟢 Top Positive Reviews")
+
+                        positive_reviews = df[
+                            df['Sentiment'] == 'positive'
+                        ][review_column].head(3)
+
+                        for review in positive_reviews:
+                            st.success(review)
+
+                    #Negative Review
+                    with review_col2:
+                        st.subheader("🔴 Top Negative Reviews")
+                        negative_reviews = df[
+                            df['Sentiment'] == 'negative'
+                        ][review_column].head(3)
+
+                        for review in negative_reviews:
+                            st.error(review)
 
                 #Gemini AI Integration Insight
-                st.divider()
-                st.subheader('AI Generated Insights')
+                with tab3:
+                    st.subheader('AI Generated Insights')
 
-                with st.spinner('Generating AI Insights...'):
-                    sample_reviews=" ".join(
-                        df[review_column].fillna("").astype(str).head(50).tolist()
+                    with st.spinner('Generating AI Insights...'):
+                        sample_reviews=" ".join(
+                            df[review_column].fillna("").astype(str).head(50).tolist()
                     )
-
-                    insights=generate_insights(sample_reviews)
-                    st.write(insights)
+                        insights=generate_insights(sample_reviews)
+                        st.markdown(insights)
         
     
     except pd.errors.ParserError:
