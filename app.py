@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from utils.sentiment import analyze_sentiment
+import plotly.express as px
 
 st.set_page_config(page_title='AI Feedback Dashboard',layout='wide')
 st.title('AI Feedback Analysis Dashboard')
@@ -74,6 +75,34 @@ if uploaded_file is not None:
                 st.subheader('Analyzed Dataset')
 
                 st.dataframe(df.head(100),use_container_width=True)
+                
+                #Dashboard Logic - Sentiment Count
+                sentiment_counts=df['Sentiment'].value_counts()
+
+                positive_count=sentiment_counts.get('positive',0)
+                negative_count=sentiment_counts.get('negative',0)
+                neutral_count=sentiment_counts.get('neutral',0)
+
+                st.divider()
+                st.subheader('Sentiment Overview')
+
+                kpi1,kpi2,kpi3=st.columns(3)
+                kpi1.metric("Positive Reviews", positive_count)
+                kpi2.metric("Neutral Reviews", neutral_count)
+                kpi3.metric("Negative Reviews", negative_count)
+
+                ##Pie chart
+                pie_chart = px.pie(names=sentiment_counts.index,values=sentiment_counts.values,title="Sentiment Distribution")
+                st.plotly_chart(pie_chart,use_container_width=True)
+
+                #Bar chart
+                bar_chart = px.bar(x=sentiment_counts.index,y=sentiment_counts.values,title="Sentiment Count", 
+                                    labels={
+                                       "x": "Sentiment",
+                                       "y": "Count"
+                                    })
+                
+                st.plotly_chart(bar_chart,use_container_width=True)
     
     except pd.errors.ParserError:
         st.error('CSV Parsing failed. Please upload a clean CSV file.')
