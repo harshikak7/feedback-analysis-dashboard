@@ -1,118 +1,65 @@
-import streamlit as st
 import pandas as pd
-import plotly.express as px
+import streamlit as st
 
-from sentiment import get_sentiment
-from insights import generate_insights
-from utils.keyword_extractor import extract_keywords
+st.set_page_config(page_title='AI Feedback Dashboard',layout='wide')
+st.title('AI Feedback Analysis Dashboard')
+st.write('Upload a CSV dataset to start analysis.')
 
+uploaded_file=st.file_uploader("Upload CSV File",type=['csv'])
 
-st.set_page_config(
-    page_title="Smart Feedback Analytics Dashboard",
-    layout="wide"
-)
+#Csv loading function
+def load_csv(file):
+    encodings=['utf-8','latin1','ISO-8859-1']
 
-st.title("Smart Feedback Analytics Dashboard")
+    for encoding in encodings:
+        try:
+            df=pd.read_csv(file,encoding=encoding,on_bad_lines='skip')
+            return df
+        except Exception: 
+            continue
 
+    return None
 
-uploaded_file = st.file_uploader(
-    "Upload your feedback dataset (CSV format)",
-    type=["csv"]
-)
+#file upload
+if uploaded_file is not None:
+    try:
+        df=load_csv(uploaded_file)
 
+        if df is None:
+            st.error('Unable to read CSV file. Please upload a valid dataset')
+            st.stop()
 
-# Stop app if no file uploaded
+        if df.empty:
+            st.error('Uploaded CSV file is empty.')
+            st.stop()
 
-if uploaded_file is None:
+        st.success('File uploaded successfully')
 
-    st.info("Please upload a CSV file to begin analysis")
+        #Dataset metrics
+        col1,col2,col3=st.columns(3)
+        col1.metric('Rows', df.shape[0])
+        col2.metric('Columns', df.shape[1])
+        col3.metric('Missing Values', df.isnull().sum().sum())
+        st.divider()
 
-    st.stop()
+        #Preview dataset
+        st.subheader('Dataset Preview')
+        st.dataframe(df.head(),use_container_width=True)
 
-
-# Load dataset
-
-df = pd.read_csv(uploaded_file)
-
-
-st.subheader("Dataset Preview")
-
-st.dataframe(df)
-
-
-# Sentiment detection
-
-df["sentiment"] = df["review"].apply(get_sentiment)
-
-
-st.subheader("Sentiment Analysis Result")
-
-st.dataframe(df)
-
-
-# Create charts
-
-sentiment_chart = px.pie(
-    df,
-    names="sentiment",
-    title="Sentiment Distribution"
-)
+        #Cols section
+        st.subheader('Select Review Columns')
+        review_column=st.selectbox('Choose a column containing feedback/reviews',df.columns)
+        st.success(f'Selected Column:{review_column}')
+    
+    except pd.errors.ParserError:
+        st.error('CSV Parsing failed. Please upload a clean CSV file.')
 
 
-rating_chart = px.histogram(
-    df,
-    x="rating",
-    title="Rating Distribution"
-)
+    except UnicodeDecodeError:
+        st.error('Encoding issue is detected. Please save CSV as UTF-8')
 
+    except Exception as e:
+        st.error('Something went wrong while processing the file')
 
-city_chart = px.histogram(
-    df,
-    x="city",
-    color="sentiment",
-    title="City-wise Feedback"
-)
+        st.exception(e)
 
-
-keyword_chart_data = extract_keywords(df["review"])
-
-
-# Layout: 2 charts per row
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.plotly_chart(sentiment_chart, use_container_width=True)
-
-with col2:
-    st.plotly_chart(rating_chart, use_container_width=True)
-
-
-col3, col4 = st.columns(2)
-
-with col3:
-    st.plotly_chart(city_chart, use_container_width=True)
-
-with col4:
-
-    st.subheader("Top Keywords")
-
-    for word, count in keyword_chart_data:
-        st.write(f"{word} : {count}")
-
-
-# Auto insights section
-
-st.subheader("Auto Insights")
-
-insights = generate_insights(df)
-
-st.success(f"Most feedback from: {insights['top_city']}")
-
-st.success(
-    f"Positive feedback: {insights['positive_percent']:.2f}%"
-)
-
-st.success(
-    f"Negative feedback: {insights['negative_percent']:.2f}%"
-)
