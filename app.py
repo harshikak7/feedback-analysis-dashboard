@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 from utils.sentiment import analyze_sentiment
 import plotly.express as px
+from utils.insights import generate_insights
 
 st.set_page_config(page_title='AI Feedback Dashboard',layout='wide')
 st.title('AI Feedback Analysis Dashboard')
@@ -51,7 +52,7 @@ if uploaded_file is not None:
         #Cols section
         st.subheader('Select Review Columns')
         review_column=st.selectbox('Choose a column containing feedback/reviews',df.columns)
-        st.success(f'Selected Column:{review_column}')
+        st.success(f'Selected Column: {review_column}')
 
         analyze_button=st.button('Run sentiment analysis')
 
@@ -103,6 +104,19 @@ if uploaded_file is not None:
                                     })
                 
                 st.plotly_chart(bar_chart,use_container_width=True)
+
+                #Gemini AI Integration Insight
+                st.divider()
+                st.subheader('AI Generated Insights')
+
+                with st.spinner('Generating AI Insights...'):
+                    sample_reviews=" ".join(
+                        df[review_column].fillna("").astype(str).head(50).tolist()
+                    )
+
+                    insights=generate_insights(sample_reviews)
+                    st.write(insights)
+        
     
     except pd.errors.ParserError:
         st.error('CSV Parsing failed. Please upload a clean CSV file.')

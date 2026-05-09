@@ -1,13 +1,29 @@
-def generate_insights(df):
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv
 
-    insights = {}
+load_dotenv()
 
-    insights["top_city"] = df["city"].mode()[0]
+genai.configure(
+    api_key=os.getenv('GEMINI_API_KEY')
+)
 
-    sentiment_counts = df["sentiment"].value_counts(normalize=True)
+model=genai.GenerativeModel("models/gemini-2.0-flash-lite")
 
-    insights["positive_percent"] = sentiment_counts.get("Positive", 0) * 100
+def generate_insights(reviews_text):
+    try:
+        prompt=f""" Analyze the following customer reviews.
 
-    insights["negative_percent"] = sentiment_counts.get("Negative", 0) * 100
+        Give:
+        1. Overall Summary
+        2. Positive Trends
+        3. Negative Trends
+        4. Suggestions for improvements
 
-    return insights
+        Reviews: {reviews_text}"""
+
+        response=model.generate_content(prompt)
+        return response.text
+
+    except Exception as e:
+        return """AI insights are temporarily unavailable due to API quota limits. Please try again in a few minutes."""
