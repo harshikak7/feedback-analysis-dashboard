@@ -177,4 +177,3 @@ if uploaded_file is not None:
         st.error('Something went wrong while processing the file')
 
         st.exception(e)
-
