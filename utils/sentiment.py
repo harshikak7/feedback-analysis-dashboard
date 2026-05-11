@@ -1,7 +1,13 @@
 from transformers import pipeline
+import streamlit as st
 
-#Load hugging face model
-classifier=pipeline('sentiment-analysis',model='cardiffnlp/twitter-roberta-base-sentiment-latest')
+#Load hugging face model 
+@st.cache_resource
+def load_model():
+    classifier = pipeline("sentiment-analysis",model="cardiffnlp/twitter-roberta-base-sentiment-latest")
+    return classifier
+
+classifier=load_model()
 
 def analyze_sentiment(text):
     try:

@@ -5,25 +5,25 @@ import plotly.express as px
 from utils.insights import generate_insights
 
 st.set_page_config(page_title='AI Feedback Dashboard',layout='wide')
-
 st.markdown("""
 <style>
 
-.main {
-    background-color: #0E1117;
+h1 {
+    font-size: 2.2rem !important;
 }
 
-div[data-testid="metric-container"] {
-    background-color: #1E1E1E;
-    border-radius: 12px;
-    padding: 15px;
+h2 {
+    font-size: 1.5rem !important;
+}
+
+h3 {
+    font-size: 1.1rem !important;
 }
 
 </style>
-""", unsafe_allow_html=True)
+            """,unsafe_allow_html=True)
 
 st.title('AI Feedback Analysis Dashboard')
-st.write('Upload a CSV dataset to start analysis.')
 
 uploaded_file=st.file_uploader("Upload CSV File",type=['csv'])
 
@@ -53,13 +53,22 @@ if uploaded_file is not None:
             st.error('Uploaded CSV file is empty.')
             st.stop()
 
-        st.success('File uploaded successfully')
+        st.toast('File uploaded successfully')
 
         #Dataset metrics
         col1,col2,col3=st.columns(3)
-        col1.metric('Rows', df.shape[0])
-        col2.metric('Columns', df.shape[1])
-        col3.metric('Missing Values', df.isnull().sum().sum())
+        with col1:
+            st.caption('Rows')
+            st.markdown(f'### {df.shape[0]}')
+
+        with col2:
+            st.caption('Columns')
+            st.markdown(f'### {df.shape[1]}')
+
+        with col3:
+            st.caption('Missing')
+            st.markdown(f'### {df.isnull().sum().sum()}')
+
         st.divider()
 
         #Preview dataset
@@ -67,11 +76,30 @@ if uploaded_file is not None:
         st.dataframe(df.head(),use_container_width=True)
 
         #Cols section
-        st.subheader('Select Review Columns')
-        review_column=st.selectbox('Choose a column containing feedback/reviews',df.columns)
-        st.success(f'Selected Column: {review_column}')
+        possible_review_columns = [
+            "review",
+            "reviews",
+            "feedback",
+            "comment",
+            "comments",
+            "text",
+            "message"
+        ]
+
+        review_column = None
+        for column in df.columns:
+            if column.lower() in possible_review_columns:
+                review_column = column
+                break
+        st.toast(f'Selected Column: {review_column}')
 
         analyze_button=st.button('Run sentiment analysis')
+
+        if review_column is None:
+            review_column = st.selectbox(
+                "Select Review Column",
+                df.columns
+            )
 
         #Sentiment Logic
         if analyze_button:
@@ -89,7 +117,7 @@ if uploaded_file is not None:
                 df['Sentiment']=sentiments
                 df['Confidence Score']=confidence_scores
 
-                st.success('Sentiment Analysis Completed!')
+                st.toast('Sentiment Analysis Completed!')
 
                 tab1,tab2,tab3=st.tabs(["Dataset","Dashboard","AI Insights"])
 
