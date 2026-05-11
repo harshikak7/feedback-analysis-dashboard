@@ -102,7 +102,8 @@ if uploaded_file is not None:
             )
 
         #Sentiment Logic
-        if analyze_button:
+        if analyze_button or st.session_state.get("analysis_done"):
+            st.session_state.analysis_done = True
             with st.spinner('Analyzing Sentiments'):
                 sentiments=[]
                 confidence_scores=[]
