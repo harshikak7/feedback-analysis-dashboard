@@ -23,7 +23,10 @@ def generate_insights(reviews_text):
         Reviews: {reviews_text}"""
 
         response=model.generate_content(prompt)
-        return response.text
+
+        if response.text:
+            return response.text
+        return f"AI Insights Temporarily Unavailable The Gemini API is currently rate-limited or unavailable. Please try again later."
 
     except Exception:
         return f"AI Insights Temporarily Unavailable The Gemini API is currently rate-limited or unavailable. Please try again later."
