@@ -1,7 +1,6 @@
 streamlit
 pandas
 plotly
-transformers
-torch
 google-generativeai
 python-dotenv
+requests

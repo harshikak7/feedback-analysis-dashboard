@@ -1,26 +1,58 @@
-from transformers import pipeline
-import streamlit as st
+import requests
+import os
+from dotenv import load_dotenv
 
-#Load hugging face model 
-@st.cache_resource
-def load_model():
-    classifier = pipeline("sentiment-analysis",model="cardiffnlp/twitter-roberta-base-sentiment-latest")
-    return classifier
+load_dotenv()
 
-classifier=load_model()
+API_URL = "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest"
+
+headers = {
+    "Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"
+}
 
 def analyze_sentiment(text):
-    try:
-        if not isinstance(text,str):
-            return 'Neutral',0
-        if text.strip()=='':
-            return 'Neutral',0
-        
-        result=classifier(text[:512])[0]
-        label=result['label']
-        score=round(result['score'],2)
 
-        return label,score
+    try:
+
+        if not isinstance(text, str):
+
+            return "neutral", 0
+
+        if text.strip() == "":
+
+            return "neutral", 0
+
+        payload = {
+            "inputs": text[:512]
+        }
+
+        response = requests.post(
+            API_URL,
+            headers=headers,
+            json=payload,
+            timeout=10
+        )
+
+        result = response.json()
+
+        if isinstance(result, list):
+
+            prediction = max(
+                result[0],
+                key=lambda x: x["score"]
+            )
+
+            label = prediction["label"].lower()
+
+            score = round(
+                prediction["score"],
+                2
+            )
+
+            return label, score
+
+        return "neutral", 0
 
     except Exception:
-        return 'Neutral',0
+
+        return "neutral", 0
