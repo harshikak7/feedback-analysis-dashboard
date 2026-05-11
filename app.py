@@ -185,13 +185,11 @@ if uploaded_file is not None:
                 #Gemini AI Integration Insight
                 with tab3:
                     st.subheader('AI Generated Insights')
-
-                    with st.spinner('Generating AI Insights...'):
-                        sample_reviews=" ".join(
-                            df[review_column].fillna("").astype(str).head(50).tolist()
+                    sample_reviews=" ".join(
+                        df[review_column].fillna("").astype(str).head(50).tolist()
                     )
-                        insights=generate_insights(sample_reviews)
-                        st.markdown(insights)
+                    insights=generate_insights(sample_reviews)
+                    st.markdown(insights)
         
     
     except pd.errors.ParserError:
