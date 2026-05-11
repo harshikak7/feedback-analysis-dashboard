@@ -8,7 +8,7 @@ genai.configure(
     api_key=os.getenv('GEMINI_API_KEY')
 )
 
-model=genai.GenerativeModel("models/gemini-2.0-flash-lite")
+model=genai.GenerativeModel("gemini-2.0-flash")
 
 def generate_insights(reviews_text):
     try:
@@ -25,5 +25,5 @@ def generate_insights(reviews_text):
         response=model.generate_content(prompt)
         return response.text
 
-    except Exception as e:
-        return """AI insights are temporarily unavailable due to API quota limits. Please try again in a few minutes."""
+    except Exception:
+        return f"AI Insights Temporarily Unavailable The Gemini API is currently rate-limited or unavailable. Please try again later."
