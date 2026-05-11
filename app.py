@@ -185,11 +185,11 @@ if uploaded_file is not None:
                 #Gemini AI Integration Insight
                 with tab3:
                     st.subheader('AI Generated Insights')
-                    if st.button('Generate Insights'):
-                        with st.spinner('Generating insights using Gemini AI'):
-                            sample_reviews = " ".join(df[review_column].fillna('').astype(str).tolist())
-                            insights = generate_insights(sample_reviews)
-                            st.markdown(insights)
+                    sample_reviews = " ".join(df[review_column].fillna('').astype(str).tolist())
+
+                    with st.spinner('Generating insights!'):
+                        insights = generate_insights(sample_reviews)
+                    st.markdown(insights)
     
     except pd.errors.ParserError:
         st.error('CSV Parsing failed. Please upload a clean CSV file.')

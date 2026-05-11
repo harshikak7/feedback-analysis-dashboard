@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest"
+API_URL = "https://router.huggingface.co/hf-inference/models/cardiffnlp/twitter-roberta-base-sentiment-latest"
 
 headers = {
     "Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"
@@ -30,22 +30,22 @@ def analyze_sentiment(text):
             API_URL,
             headers=headers,
             json=payload,
-            timeout=10
+            timeout=15
         )
 
         result = response.json()
 
         if isinstance(result, list):
 
-            prediction = max(
+            best_prediction = max(
                 result[0],
                 key=lambda x: x["score"]
             )
 
-            label = prediction["label"].lower()
+            label = best_prediction["label"].lower()
 
             score = round(
-                prediction["score"],
+                best_prediction["score"],
                 2
             )
 
@@ -53,6 +53,8 @@ def analyze_sentiment(text):
 
         return "neutral", 0
 
-    except Exception:
+    except Exception as e:
+
+        print(e)
 
         return "neutral", 0
